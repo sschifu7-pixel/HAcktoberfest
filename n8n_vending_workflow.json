@@ -1,0 +1,206 @@
+{
+  "name": "IAFantasma Vending Web3 - Flujo de Información n8n",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vending-order",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook Vending Order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.event }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "VOICE_ORDER_RECEIVED"
+            },
+            {
+              "value2": "NFC_PAYMENT_CONFIRMED"
+            },
+            {
+              "value2": "DISPENSE_SUCCESS_IR_DETECTED"
+            },
+            {
+              "value2": "DISPENSE_TIMEOUT_ALERT"
+            }
+          ]
+        }
+      },
+      "id": "2",
+      "name": "Router por Evento",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Procesar Orden por Voz con ElevenLabs\nconst body = $input.first().json.body;\nreturn {\n  tipo: 'ORDEN_VOZ',\n  transcripcion: body.phrase || 'N/A',\n  producto_solicitado: body.product?.nombre || body.product?.name || 'Desconocido',\n  precio: body.product?.precio || body.product?.price || '0.00',\n  canal_hardware: body.channel || 'A1 (Motor B)',\n  estado_maquina: body.status || 'ESPERANDO_PAGO',\n  timestamp: body.timestamp || new Date().toISOString(),\n  mensaje_notificacion: `🎙️ [IAFantasma] Orden por voz recibida: ${body.product?.nombre || 'Producto'} (${body.product?.precio}). Transcripción: \"${body.phrase}\"`\n};"
+      },
+      "id": "3",
+      "name": "Formatear Orden Voz",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Procesar Pago NFC Confirmado (Tangem / Mifare)\nconst body = $input.first().json.body;\nreturn {\n  tipo: 'PAGO_NFC_EXITOSO',\n  tarjeta_uid: body.card_uid || '4A:8F:12:9C',\n  producto: body.product?.nombre || body.product?.name || 'Producto',\n  monto: body.amount || '1.50 USDC',\n  motor_activado: 'Motor B (Driver L298N)',\n  timestamp: body.timestamp || new Date().toISOString(),\n  mensaje_notificacion: `💳 [PAGO APROBADO] Tarjeta NFC UID: ${body.card_uid}. Despachando ${body.product?.nombre} mediante Motor B en Raspberry Pi Pico.`\n};"
+      },
+      "id": "4",
+      "name": "Formatear Pago NFC",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Confirmación de Entrega por Sensor IR\nconst body = $input.first().json.body;\nreturn {\n  tipo: 'DESPACHO_COMPLETADO',\n  producto: body.product?.nombre || 'Producto',\n  sensor_ir: 'GP14 (0 = Detectado)',\n  resultado: 'EXITO',\n  timestamp: body.timestamp || new Date().toISOString(),\n  mensaje_notificacion: `✅ [ENTREGA CONFIRMADA] Sensor óptico IR detectó la caída del producto ${body.product?.nombre}. Máquina en reposo.`\n};"
+      },
+      "id": "5",
+      "name": "Formatear Entrega IR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Alerta de Fallo / Timeout de Sensor IR\nconst body = $input.first().json.body;\nreturn {\n  tipo: 'ALERTA_DESPACHO',\n  error: body.error || 'TIMEOUT_SIN_CAIDA',\n  alerta: 'Revisar stock o atasco de espiral en el Motor B',\n  timestamp: body.timestamp || new Date().toISOString(),\n  mensaje_notificacion: `⚠️ [ALERTA DE DESPACHO] El sensor IR no detectó caída tras 8 segundos. Posible atasco o falta de stock.`\n};"
+      },
+      "id": "6",
+      "name": "Formatear Alerta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7",
+      "name": "Respuesta Webhook OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        340
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Vending Order": {
+      "main": [
+        [
+          {
+            "node": "Router por Evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router por Evento": {
+      "main": [
+        [
+          {
+            "node": "Formatear Orden Voz",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formatear Pago NFC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formatear Entrega IR",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formatear Alerta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Orden Voz": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Webhook OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Pago NFC": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Webhook OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Entrega IR": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Webhook OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Alerta": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Webhook OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

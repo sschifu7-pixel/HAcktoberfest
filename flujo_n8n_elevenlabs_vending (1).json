@@ -1,0 +1,126 @@
+{
+  "name": "Flujo Agentico n8n - ElevenLabs Vending Web3",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vending-event",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        200
+      ],
+      "id": "node-webhook-1",
+      "name": "Webhook ESP32 Event"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const body = $input.item.json.body || $input.item.json;\nconst event = body.event || 'PAYMENT_OK';\nconst canal = body.canal || 'A1';\nconst uid = body.uid_nfc || 'DESCONOCIDO';\n\nlet promptText = '';\nif (event === 'ERROR_DROP') {\n  promptText = `Alerta de mantenimiento: Fallo fisico en canal ${canal}. Tarjeta NFC ${uid} realizo el pago pero el sensor IR no detecto caida.`;\n} else if (event === 'ITEM_DROPPED') {\n  promptText = `Venta confirmada en canal ${canal}. Producto despachado y verificado por sensor IR. Registrado en Core Testnet.`;\n} else {\n  promptText = `Pago recibido en canal ${canal} para tarjeta NFC ${uid}. Iniciando dispensado.`;\n}\n\nreturn { json: { event, canal, uid, promptText } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        200
+      ],
+      "id": "node-code-1",
+      "name": "Generar Prompt Dinamico"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "ELEVENLABS_TTS_API_V4_URL",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $env.ELEVENLABS_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.promptText }}\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.75\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        580,
+        200
+      ],
+      "id": "node-http-1",
+      "name": "ElevenLabs API v4 TTS"
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "caption": "=Alerta de Voz ElevenLabs | Evento: {{ $node[\"Generar Prompt Dinamico\"].json.event }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        200
+      ],
+      "id": "node-telegram-1",
+      "name": "Telegram Bot"
+    }
+  ],
+  "connections": {
+    "Webhook ESP32 Event": {
+      "main": [
+        [
+          {
+            "node": "Generar Prompt Dinamico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Prompt Dinamico": {
+      "main": [
+        [
+          {
+            "node": "ElevenLabs API v4 TTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ElevenLabs API v4 TTS": {
+      "main": [
+        [
+          {
+            "node": "Telegram Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

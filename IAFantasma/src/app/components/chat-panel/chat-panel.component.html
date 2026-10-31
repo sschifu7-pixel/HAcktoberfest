@@ -1,0 +1,154 @@
+<div class="chat-container">
+
+  <!-- ===== PANEL IZQUIERDO: FANTASMA ===== -->
+  <div class="avatar-panel">
+    <!-- Nombre del asistente -->
+    <div class="assistant-brand">
+      <span class="brand-icon">👻</span>
+      <div>
+        <h1 class="brand-title">IAFantasma</h1>
+        <p class="brand-subtitle">Asistente Espectral IA</p>
+      </div>
+    </div>
+
+    <!-- Fantasma animado -->
+    <app-ghost-avatar [state]="ghostState"></app-ghost-avatar>
+
+    <!-- Indicador de estado -->
+    <div class="status-indicator">
+      <span class="status-dot" [class.loading]="isLoading"></span>
+      <span class="status-text">
+        {{ isLoading ? 'Pensando...' : 'En línea' }}
+      </span>
+    </div>
+
+    <!-- Stats / info decorativa -->
+    <div class="avatar-stats">
+      <div class="stat">
+        <span class="stat-value">{{ messages.length }}</span>
+        <span class="stat-label">Mensajes</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">∞</span>
+        <span class="stat-label">Conocimiento</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">👻</span>
+        <span class="stat-label">Nivel</span>
+      </div>
+    </div>
+
+    <!-- Botón limpiar chat -->
+    <button class="btn-clear" (click)="clearChat()" id="btn-clear-chat">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path>
+        <path d="M10 11v6M14 11v6"></path>
+      </svg>
+      Limpiar chat
+    </button>
+  </div>
+
+  <!-- ===== PANEL DERECHO: CHAT ===== -->
+  <div class="chat-panel">
+
+    <!-- Header del chat -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="header-avatar">👻</div>
+        <div>
+          <h2 class="chat-title">IAFantasma</h2>
+          <p class="chat-online">
+            <span class="dot-green"></span>
+            Siempre disponible
+          </p>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <div class="header-badge">IA Local</div>
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="messages-area" #messagesContainer>
+
+      <!-- Lista de mensajes -->
+      <ng-container *ngFor="let msg of messages; trackBy: trackById">
+
+        <!-- Mensaje del asistente -->
+        <div *ngIf="msg.role === 'assistant'" class="message-row assistant-row">
+          <div class="msg-avatar">👻</div>
+          <div class="message-bubble assistant-bubble">
+            <p class="message-text">{{ msg.content }}</p>
+            <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+          </div>
+        </div>
+
+        <!-- Mensaje del usuario -->
+        <div *ngIf="msg.role === 'user'" class="message-row user-row">
+          <div class="message-bubble user-bubble">
+            <p class="message-text">{{ msg.content }}</p>
+            <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+          </div>
+          <div class="msg-avatar user-avatar">🧑</div>
+        </div>
+
+      </ng-container>
+
+      <!-- Indicador "escribiendo" -->
+      <div *ngIf="isLoading" class="message-row assistant-row typing-row">
+        <div class="msg-avatar">👻</div>
+        <div class="message-bubble assistant-bubble typing-bubble">
+          <div class="typing-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sugerencias rápidas -->
+    <div class="quick-suggestions" *ngIf="messages.length <= 1">
+      <button *ngFor="let s of quickSuggestions"
+              class="suggestion-chip"
+              (click)="sendMessage(s)">
+        {{ s }}
+      </button>
+    </div>
+
+    <!-- Input de chat -->
+    <div class="chat-input-area">
+      <div class="input-wrapper">
+        <textarea
+          #inputEl
+          id="chat-input"
+          class="chat-input"
+          [(ngModel)]="inputText"
+          (keydown)="onKeyDown($event)"
+          placeholder="Escríbele al fantasma... 👻"
+          rows="1"
+          [disabled]="isLoading"
+          maxlength="500">
+        </textarea>
+        <button
+          class="send-button"
+          id="btn-send-message"
+          (click)="sendMessage()"
+          [disabled]="!inputText.trim() || isLoading"
+          [class.active]="inputText.trim()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <p class="input-hint">↵ Enter para enviar · Shift+Enter para nueva línea</p>
+    </div>
+
+  </div>
+</div>

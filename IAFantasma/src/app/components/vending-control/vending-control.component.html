@@ -1,0 +1,444 @@
+<div class="vending-dashboard">
+
+  <!-- BANNER SUPERIOR DE ESTADO SINCRONIZADO CON ESP32 -->
+  <header class="vending-header">
+    <div class="header-left">
+      <div class="machine-badge" [ngClass]="vending.estadoActual().toLowerCase()">
+        <span class="pulsing-led"></span>
+        <span class="badge-text">ESTADO: {{ vending.estadoActual() }}</span>
+      </div>
+      <div class="channel-indicator">
+        PRODUCTO ACTIVO: <strong>[{{ vending.opcionSeleccionada() + 1 }}] {{ vending.productoActual().nombre }}</strong>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- BOTÓN DE CONTROL POR VOZ ELEVENLABS -->
+      <button class="btn-voice-order" 
+              [class.listening]="voice.isListening()"
+              [class.speaking]="voice.isPlayingAudio()"
+              (click)="onToggleVoice()"
+              [title]="voice.isListening() ? 'Detener Micrófono' : 'Pedir Producto por Voz'">
+        <span class="mic-icon">{{ voice.isListening() ? '🔴' : '🎙️' }}</span>
+        <span>{{ voice.isListening() ? 'Escuchando Voz...' : 'Pedir por Voz' }}</span>
+        <span class="voice-waves" *ngIf="voice.isListening() || voice.isPlayingAudio()">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+
+      <!-- BOTÓN DE CONFIGURACIÓN ELEVENLABS & n8n -->
+      <button class="btn-icon btn-config" (click)="onOpenConfig()" title="Configuración de ElevenLabs y n8n">
+        ⚙️ AI & n8n
+      </button>
+
+      <!-- Indicador de conexión USB (Web Serial API) -->
+      <div class="usb-status" [class.connected]="vending.serialConnected()">
+        <span class="usb-icon">🔌</span>
+        <span>{{ vending.serialPortName() }}</span>
+        <button *ngIf="!vending.serialConnected()" class="btn-usb connect" (click)="onConnectUsb()">
+          USB
+        </button>
+        <button *ngIf="vending.serialConnected()" class="btn-usb disconnect" (click)="onDisconnectUsb()">
+          Desconectar
+        </button>
+      </div>
+
+      <!-- Indicador de conexión Wi-Fi (WebSocket inalámbrico) -->
+      <div class="usb-status" [class.connected]="vending.wifiConnected()">
+        <span class="usb-icon">📶</span>
+        <span *ngIf="!vending.wifiConnected()">IP:</span>
+        <input *ngIf="!vending.wifiConnected()" 
+               type="text" 
+               [value]="vending.esp32Ip()" 
+               (input)="vending.esp32Ip.set($any($event.target).value)" 
+               class="input-ip" 
+               placeholder="192.168.4.1" />
+        <span *ngIf="vending.wifiConnected()">Wi-Fi ({{ vending.esp32Ip() }})</span>
+        <button *ngIf="!vending.wifiConnected()" class="btn-usb connect-wifi" (click)="vending.connectWifi()">
+          Conectar Wi-Fi
+        </button>
+        <button *ngIf="vending.wifiConnected()" class="btn-usb disconnect" (click)="vending.disconnectWifi()">
+          Desconectar
+        </button>
+      </div>
+
+      <!-- Toggle de Sonido -->
+      <button class="btn-icon" (click)="vending.soundEnabled.set(!vending.soundEnabled())" [title]="vending.soundEnabled() ? 'Silenciar' : 'Activar Sonido'">
+        {{ vending.soundEnabled() ? '🔊' : '🔇' }}
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL: 3 COLUMNAS -->
+  <div class="vending-grid">
+
+    <!-- COLUMNA 1: VISTA DEL FANTASMA (SINCRONIZADO CON TFT ILI9341) -->
+    <section class="card ghost-column">
+      <div class="card-header">
+        <h2 class="card-title">👻 Avatar Espectral</h2>
+        <span class="tag-status" [ngClass]="vending.ghostEmotion()">{{ vending.ghostEmotion() | uppercase }}</span>
+      </div>
+
+      <!-- Diálogo en Vivo del Fantasma -->
+      <div class="speech-bubble">
+        <div class="speech-content">
+          <p class="speech-text">{{ vending.ghostSpeech() }}</p>
+        </div>
+        <div class="speech-tail"></div>
+      </div>
+
+      <!-- PANEL DE ASISTENTE DE VOZ ELEVENLABS EN VIVO -->
+      <div class="voice-assistant-bar" [class.active]="voice.isListening() || voice.isPlayingAudio()">
+        <div class="voice-bar-top">
+          <span class="voice-status-tag" [class.listening]="voice.isListening()" [class.speaking]="voice.isPlayingAudio()">
+            {{ voice.isListening() ? '🎙️ ESCUCHANDO TU VOZ' : (voice.isPlayingAudio() ? '🔊 ELEVENLABS HABLANDO' : '✨ ASISTENTE DE VOZ') }}
+          </span>
+          <span class="voice-engine-badge">
+            {{ voice.elevenLabsApiKey() ? 'ElevenLabs TTS' : 'Voz Nativa' }}
+          </span>
+        </div>
+        <p class="voice-transcript">
+          "{{ voice.transcript() || 'Di: Quiero una Soda, Dame un Snack, o Crypto Energy' }}"
+        </p>
+
+        <!-- Chips de prueba rápida de voz -->
+        <div class="voice-quick-chips">
+          <button class="voice-chip" (click)="onQuickVoiceOrder('Quiero una Soda Web3')">
+            🥤 "Quiero una Soda"
+          </button>
+          <button class="voice-chip" (click)="onQuickVoiceOrder('Dame un Cyber Snack')">
+            🍫 "Dame un Snack"
+          </button>
+          <button class="voice-chip" (click)="onQuickVoiceOrder('Comprar Crypto Energy')">
+            ⚡ "Crypto Energy"
+          </button>
+        </div>
+      </div>
+
+      <!-- Avatar Espectral Animado -->
+      <div class="ghost-stage" [ngClass]="vending.ghostEmotion()">
+        <div class="spectral-aura"></div>
+        <app-ghost-avatar [state]="vending.ghostEmotion()"></app-ghost-avatar>
+      </div>
+
+      <!-- Selector Manual de Emociones para pruebas rápidas -->
+      <div class="emotion-tester">
+        <span class="sub-label">Simular Emoción (TFT Display):</span>
+        <div class="emotion-buttons">
+          <button class="btn-chip" [class.active]="vending.ghostEmotion() === 'idle'" (click)="onSetEmotion('idle')">
+            💤 Reposo (Menú)
+          </button>
+          <button class="btn-chip" [class.active]="vending.ghostEmotion() === 'thinking'" (click)="onSetEmotion('thinking')">
+            🤔 Esperando NFC
+          </button>
+          <button class="btn-chip" [class.active]="vending.ghostEmotion() === 'happy'" (click)="onSetEmotion('happy')">
+            ✨ Pago Aprobado
+          </button>
+          <button class="btn-chip" [class.active]="vending.ghostEmotion() === 'surprised'" (click)="onSetEmotion('surprised')">
+            ⚡ Error / Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Joystick Virtual (Raspberry Pi Pico GP26, GP27, GP16) -->
+      <div class="joystick-section">
+        <span class="sub-label">Controles Físicos / Joystick Pico:</span>
+        <div class="joystick-pad">
+          <button class="joy-btn joy-up" (click)="onSelectPrevious()" title="Mover Selección Arriba (ARRIBA)">
+            ▲ ARRIBA
+          </button>
+          <div class="joy-middle">
+            <button class="joy-btn joy-ok" (click)="onPressOk()" title="Seleccionar / OK">
+              {{ vending.estadoActual() === 'ESPERANDO_PAGO' ? 'CANCELAR' : 'OK (Pagar)' }}
+            </button>
+          </div>
+          <button class="joy-btn joy-down" (click)="onSelectNext()" title="Mover Selección Abajo (ABAJO)">
+            ▼ ABAJO
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMNA 2: CATÁLOGO WEB3 (SODA WEB3, CYBER SNACK, CRYPTO ENERGY) -->
+    <section class="card channels-column">
+      <div class="card-header">
+        <h2 class="card-title">📦 Catálogo de Productos</h2>
+        <span class="tag-status">TFT 320x240 ILI9341</span>
+      </div>
+
+      <!-- BADGE DE FLUJO DE INFORMACIÓN n8n -->
+      <div class="n8n-flow-indicator" [class.active]="voice.isSendingToN8n()">
+        <div class="n8n-left">
+          <span class="n8n-icon">⚡</span>
+          <div>
+            <strong>Flujo de Información n8n:</strong>
+            <span class="n8n-status-text">{{ voice.lastN8nStatus() }}</span>
+          </div>
+        </div>
+        <button class="btn-test-n8n" (click)="onTestN8nWebhook()" [disabled]="voice.isSendingToN8n()">
+          {{ voice.isSendingToN8n() ? 'Enviando...' : 'Probar Webhook' }}
+        </button>
+      </div>
+
+      <!-- Lista de los 3 productos exactos de esp32_vending_i2c_nfc.ino -->
+      <div class="products-list">
+        <div *ngFor="let p of vending.catalogo(); let i = index" 
+             class="product-card" 
+             [class.selected]="vending.opcionSeleccionada() === i"
+             [class.dispensing]="vending.opcionSeleccionada() === i && vending.servoRunning()"
+             (click)="onSelectProduct(i)">
+          
+          <div class="prod-badge">OPCIÓN {{ i + 1 }}</div>
+          <div class="prod-icon" [style.color]="p.color">{{ p.icon }}</div>
+          
+          <div class="prod-details">
+            <h3 class="prod-name">{{ p.nombre }}</h3>
+            <p class="prod-desc">{{ p.descripcion }}</p>
+            <div class="prod-meta">
+              <span class="prod-price">{{ p.precio }}</span>
+              <span class="prod-stock" [class.low]="p.stock <= 1">Stock: {{ p.stock }}</span>
+            </div>
+          </div>
+
+          <div class="prod-action">
+            <button class="btn-select" [disabled]="p.stock === 0" (click)="$event.stopPropagation(); onSelectProduct(i); onPressOk();">
+              {{ vending.opcionSeleccionada() === i ? 'Seleccionado (Pagar)' : 'Elegir' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO NFC: LECTURA Y PAGO (PN532 I2C 0x24) -->
+      <div class="nfc-module" [class.waiting]="vending.estadoActual() === 'ESPERANDO_PAGO'">
+        <div class="nfc-header">
+          <span class="nfc-title">💳 Lector PN532 I2C (SDA 22 / SCL 21)</span>
+          <span class="nfc-signal-waves" *ngIf="vending.estadoActual() === 'ESPERANDO_PAGO'">
+            <span></span><span></span><span></span>
+          </span>
+        </div>
+
+        <div class="nfc-card-preview">
+          <div class="rfid-chip">
+            <div class="chip-contacts"></div>
+            <span class="nfc-symbol">📡</span>
+          </div>
+          <div class="rfid-info">
+            <span class="rfid-label">TANGEM / MIFARE ISO14443A</span>
+            <div class="uid-input-group">
+              <label for="uid-input">UID:</label>
+              <input id="uid-input" type="text" [(ngModel)]="customUid" maxlength="14" placeholder="4A:8F:12:9C" />
+            </div>
+          </div>
+        </div>
+
+        <div class="nfc-actions">
+          <button class="btn-nfc-tap" 
+                  (click)="onTapCard()" 
+                  [disabled]="vending.servoRunning()">
+            <span>⚡ ACERCAR TARJETA / TAG NFC</span>
+          </button>
+
+          <button *ngIf="vending.estadoActual() === 'ESPERANDO_PAGO'" 
+                  class="btn-cancel" 
+                  (click)="onCancel()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMNA 3: TELEMETRÍA DE HARDWARE (SERVO/MOTOR B PICO + SENSOR IR + SERIAL) -->
+    <section class="card hardware-column">
+      <div class="card-header">
+        <h2 class="card-title">⚙️ Telemetría de Hardware</h2>
+        <span class="tag-status">ESP32 & PICO RP2040</span>
+      </div>
+
+      <!-- WIDGET MOTOR B / PUENTE H L298N (GP9, GP10, GP11 en Pico) -->
+      <div class="hardware-box servo-box" [class.active]="vending.servoRunning()">
+        <div class="box-top">
+          <div class="box-name">
+            <span class="hw-icon">🔄</span>
+            <div>
+              <h3>Motor B (L298N Dispensador)</h3>
+              <p class="pin-tag">Pico IN3=GP8, IN4=GP7, ENB=GP6</p>
+            </div>
+          </div>
+          <div class="status-pill" [class.running]="vending.servoRunning()">
+            {{ vending.servoRunning() ? 'DESPACHANDO' : 'DETENIDO' }}
+          </div>
+        </div>
+
+        <!-- Tacómetro de Espiral Animada -->
+        <div class="servo-animation-container">
+          <div class="spiral-graphic" 
+               [class.spinning]="vending.servoRunning()"
+               [class.reverse]="vending.servoDirectionInverted()">
+            <div class="spiral-rings"></div>
+            <div class="spiral-center">⚙️</div>
+          </div>
+          <div class="servo-specs">
+            <div class="spec-row">
+              <span>Duty Cycle:</span>
+              <strong>{{ vending.servoDuty() }} (u16)</strong>
+            </div>
+            <div class="spec-row">
+              <span>Sentido:</span>
+              <strong [class.inverted]="vending.servoDirectionInverted()">
+                {{ vending.servoDirectionInverted() ? 'CONTRARIO (3800)' : 'NORMAL (6000)' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controles del Motor B -->
+        <div class="servo-controls">
+          <button class="btn-toggle-dir" (click)="onToggleDirection()">
+            🔀 Invertir Sentido ({{ vending.servoDirectionInverted() ? '3800' : '6000' }})
+          </button>
+
+          <div class="manual-servo-btns">
+            <button class="btn-hw btn-start" 
+                    [disabled]="vending.servoRunning()" 
+                    (click)="onManualServoStart()">
+              ▶ Despacho Manual
+            </button>
+            <button class="btn-hw btn-stop" 
+                    [disabled]="!vending.servoRunning()" 
+                    (click)="onManualServoStop()">
+              ⏹ Parar Motor B
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIDGET SENSOR INFRARROJO IR (GP14 en Pico) -->
+      <div class="hardware-box ir-box" [class.triggered]="vending.irTriggered()">
+        <div class="box-top">
+          <div class="box-name">
+            <span class="hw-icon">🔴</span>
+            <div>
+              <h3>Sensor Infrarrojo IR</h3>
+              <p class="pin-tag">Pico GP14 (Caída de Producto)</p>
+            </div>
+          </div>
+          <div class="ir-indicator" [class.blocked]="vending.irTriggered()">
+            {{ vending.irTriggered() ? 'PRODUCTO DETECTADO (0)' : 'HAZ DESPEJADO (1)' }}
+          </div>
+        </div>
+
+        <p class="ir-desc">
+          Monitorea la rampa de caída. Al detectar el obstáculo óptico confirma la entrega de la compra y detiene el Motor B.
+        </p>
+
+        <!-- Pruebas de Sensor IR -->
+        <div class="ir-actions">
+          <button class="btn-ir-trigger" (click)="onSimulateDrop()">
+            ✅ Simular Caída Detectada
+          </button>
+          <button class="btn-ir-timeout" (click)="onSimulateTimeout()">
+            ⚠️ Simular Timeout (Sin Caída)
+          </button>
+        </div>
+      </div>
+
+      <!-- CONSOLA SERIE UART (ESP32 <-> PICO & WEB) -->
+      <div class="serial-console">
+        <div class="console-header">
+          <span>📟 Registro UART & n8n</span>
+          <button class="btn-clear-logs" (click)="vending.clearLogs()">Limpiar</button>
+        </div>
+        <div class="console-body">
+          <div *ngIf="vending.serialLogs().length === 0" class="console-empty">
+            Sin tráfico serie aún. Habla por micrófono o haz clic en "Conectar USB".
+          </div>
+          <div *ngFor="let log of vending.serialLogs()" class="log-line" [ngClass]="log.direction">
+            <span class="log-time">[{{ log.time }}]</span>
+            <span class="log-tag">{{ log.direction | uppercase }}:</span>
+            <span class="log-text">{{ log.text }}</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- MODAL DE CONFIGURACIÓN: ELEVENLABS API & n8n WEBHOOK -->
+  <div class="modal-backdrop" *ngIf="voice.showConfigModal()" (click)="onCloseConfig()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Configuración ElevenLabs AI & n8n Workflow</h3>
+        <button class="btn-close-modal" (click)="onCloseConfig()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- SECCIÓN ELEVENLABS -->
+        <div class="config-section">
+          <div class="section-title">
+            <span>🗣️ ElevenLabs Text-to-Speech</span>
+            <span class="badge-tag">Voz Espectral</span>
+          </div>
+          
+          <div class="form-group">
+            <label for="apiKey">ElevenLabs API Key (xi-api-key):</label>
+            <input id="apiKey" 
+                   type="password" 
+                   class="form-input" 
+                   placeholder="sk_xxxxxxxxxxxxxxxxxxxxxx" 
+                   [(ngModel)]="tempApiKey" />
+            <small class="form-hint">Obtén tu clave gratuita en <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>. Si se deja vacía, se usa síntesis de voz nativa.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="voiceSelect">Voz Espectral Predefinida:</label>
+            <select id="voiceSelect" class="form-input" [(ngModel)]="tempVoiceId">
+              <option *ngFor="let v of voicePresets" [value]="v.id">{{ v.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="customVoiceId">O escribe un Voice ID personalizado:</label>
+            <input id="customVoiceId" 
+                   type="text" 
+                   class="form-input" 
+                   placeholder="21m00Tcm4TlvDq8ikWAM" 
+                   [(ngModel)]="tempVoiceId" />
+          </div>
+
+          <button class="btn-modal-action" (click)="onTestElevenLabsVoice()">
+            🔊 Probar Voz con ElevenLabs
+          </button>
+        </div>
+
+        <!-- SECCIÓN n8n -->
+        <div class="config-section">
+          <div class="section-title">
+            <span>⚡ n8n Workflow Webhook</span>
+            <span class="badge-tag">Flujo de Información</span>
+          </div>
+
+          <div class="form-group">
+            <label for="n8nUrl">n8n Webhook URL:</label>
+            <input id="n8nUrl" 
+                   type="text" 
+                   class="form-input" 
+                   placeholder="http://localhost:5678/webhook/vending-order" 
+                   [(ngModel)]="tempN8nUrl" />
+            <small class="form-hint">Recibirá eventos JSON: órdenes de voz, pagos NFC, telemetría y despacho de producto.</small>
+          </div>
+
+          <button class="btn-modal-action" (click)="onTestN8nWebhook()">
+            ⚡ Probar Conexión Webhook n8n
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-secondary" (click)="onCloseConfig()">Cancelar</button>
+        <button class="btn-modal-primary" (click)="onSaveConfig()">💾 Guardar Configuración</button>
+      </div>
+    </div>
+  </div>
+
+</div>

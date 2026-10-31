@@ -1,0 +1,180 @@
+/* ============================================
+   GLOBAL STYLES - IAFantasma
+   Tema: Negro profundo / Blanco / Rojo elegante
+   ============================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-bg:         #0a0a0a;
+  --color-bg2:        #111111;
+  --color-surface:    #161616;
+  --color-surface2:   #1e1e1e;
+  --color-border:     rgba(255,255,255,0.08);
+  --color-red:        #e02020;
+  --color-red-dark:   #a01515;
+  --color-red-glow:   rgba(224, 32, 32, 0.35);
+  --color-red-subtle: rgba(224, 32, 32, 0.12);
+  --color-white:      #f5f5f5;
+  --color-white-dim:  rgba(245,245,245,0.75);
+  --color-white-muted:rgba(245,245,245,0.4);
+  --color-ghost:      #ffffff;
+  --color-ghost-glow: rgba(255,255,255,0.18);
+  --font-main:        'Outfit', sans-serif;
+  --font-head:        'Space Grotesk', sans-serif;
+  --radius-sm:        8px;
+  --radius-md:        14px;
+  --radius-lg:        22px;
+  --radius-xl:        32px;
+  --shadow-red:       0 0 40px rgba(224,32,32,0.2), 0 0 80px rgba(224,32,32,0.08);
+  --shadow-white:     0 0 30px rgba(255,255,255,0.15), 0 0 60px rgba(255,255,255,0.06);
+  --transition:       0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg);
+  color: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-red-dark);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-red);
+}
+
+/* Selección de texto */
+::selection {
+  background: var(--color-red);
+  color: #fff;
+}
+
+/* Keyframes globales */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-18px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.4)); }
+  50%       { filter: drop-shadow(0 0 28px rgba(255,255,255,0.8)) drop-shadow(0 0 50px rgba(224,32,32,0.3)); }
+}
+
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95%            { transform: scaleY(0.05); }
+}
+
+@keyframes tail-wiggle {
+  0%   { transform: skewX(0deg); }
+  25%  { transform: skewX(6deg); }
+  75%  { transform: skewX(-6deg); }
+  100% { transform: skewX(0deg); }
+}
+
+@keyframes talking {
+  0%, 100% { d: path("M 60 110 Q 80 125 100 110"); }
+  50%       { d: path("M 60 110 Q 80 135 100 110"); }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-8px); opacity: 1; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-10vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes eye-look {
+  0%, 100% { transform: translate(0, 0); }
+  25%       { transform: translate(3px, -2px); }
+  50%       { transform: translate(-3px, 2px); }
+  75%       { transform: translate(2px, 3px); }
+}
+
+@keyframes rotate-ring {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -314; }
+}

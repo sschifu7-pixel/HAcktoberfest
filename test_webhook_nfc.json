@@ -1,0 +1,12 @@
+{
+  "event": "NFC_PAYMENT_CONFIRMED",
+  "timestamp": "2026-10-28T02:55:00Z",
+  "device": "ESP32_TEST",
+  "card_uid": "4A:8F:12:9C",
+  "product": {
+    "nombre": "Coca-Cola",
+    "precio": "1.50 USDC"
+  },
+  "channel": "Canal A1",
+  "amount": "1.50 USDC"
+}

@@ -1,0 +1,340 @@
+/* ============================================
+   GHOST AVATAR COMPONENT STYLES
+   ============================================ */
+
+.ghost-wrapper {
+  position: relative;
+  width: 200px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* === SVG Principal === */
+.ghost-svg {
+  width: 160px;
+  height: 200px;
+  animation: float 3.5s ease-in-out infinite, pulse-glow 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255,255,255,0.3)) drop-shadow(0 0 40px rgba(224,32,32,0.15));
+  position: relative;
+  z-index: 2;
+  transition: filter 0.6s ease;
+}
+
+/* === Estados del fantasma === */
+.state-idle .ghost-svg {
+  animation: float 3.5s ease-in-out infinite, pulse-glow 2.5s ease-in-out infinite;
+}
+
+.state-thinking .ghost-svg {
+  animation: float 2s ease-in-out infinite, pulse-glow 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px rgba(74,144,217,0.5)) drop-shadow(0 0 40px rgba(74,144,217,0.3));
+}
+
+.state-talking .ghost-svg {
+  animation: float 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 25px rgba(255,255,255,0.5)) drop-shadow(0 0 50px rgba(224,32,32,0.35));
+}
+
+.state-happy .ghost-svg {
+  animation: float-happy 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(255,220,50,0.7)) drop-shadow(0 0 60px rgba(230,168,0,0.5));
+  transform-origin: center bottom;
+}
+
+.state-surprised .ghost-svg {
+  animation: float-shocked 0.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 25px rgba(255,153,0,0.8)) drop-shadow(0 0 50px rgba(255,153,0,0.4));
+}
+
+/* === Cola wiggle === */
+.ghost-tail {
+  animation: tail-wiggle 1.5s ease-in-out infinite;
+  transform-origin: 80px 140px;
+}
+
+/* === Ojos === */
+.eye-group {
+  transition: transform 0.4s ease;
+}
+
+/* === Arcos de ojos happy (cerrados sonriendo) === */
+.eye-happy-arc {
+  animation: eye-happy-pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes eye-happy-pulse {
+  from { opacity: 0.85; stroke-width: 4.5; }
+  to   { opacity: 1;    stroke-width: 5.5; }
+}
+
+/* === Estrellas happy encima de ojos === */
+.star-twinkle {
+  animation: star-twinkle 0.5s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+
+@keyframes star-twinkle {
+  from { opacity: 0.5; font-size: 9px; }
+  to   { opacity: 1;   font-size: 13px; }
+}
+
+/* === Cejas shocked === */
+.brow-shocked {
+  animation: brow-shake 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes brow-shake {
+  from { transform: translateY(0px); }
+  to   { transform: translateY(-4px); }
+}
+
+/* === Lengua modo happy === */
+.tongue-group {
+  animation: tongue-wag 0.6s ease-in-out infinite alternate;
+  transform-origin: 80px 122px;
+}
+
+@keyframes tongue-wag {
+  from { transform: rotate(-8deg) scaleY(0.9); }
+  to   { transform: rotate(8deg)  scaleY(1.1); }
+}
+
+/* === Signo ? thinking === */
+.think-float {
+  animation: think-float 1s ease-in-out infinite alternate;
+}
+
+@keyframes think-float {
+  from { transform: translateY(0px);  opacity: 0.6; }
+  to   { transform: translateY(-8px); opacity: 1; }
+}
+
+/* === Boca === */
+.ghost-mouth {
+  transition: d 0.25s ease, stroke 0.4s ease;
+}
+
+/* === Sombra del suelo === */
+.ghost-shadow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 12px;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: shadow-pulse 3.5s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes shadow-pulse {
+  0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.6; }
+  50%       { transform: translateX(-50%) scaleX(0.7); opacity: 0.3; }
+}
+
+/* === Anillos orbitales (thinking) === */
+.orbit-rings {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.orbit-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ring {
+  transform-origin: 100px 100px;
+}
+
+.ring-1 {
+  animation: spin-slow 4s linear infinite;
+}
+
+.ring-2 {
+  animation: spin-slow 3s linear infinite reverse;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* === Corazones (happy) === */
+.hearts-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.heart {
+  position: absolute;
+  font-size: 18px;
+  animation: heart-float 2s ease-in-out infinite;
+}
+
+.heart-1 {
+  left: 15px;
+  top: 40px;
+  animation-delay: 0s;
+}
+
+.heart-2 {
+  right: 10px;
+  top: 20px;
+  animation-delay: 0.6s;
+}
+
+.heart-3 {
+  left: 50%;
+  top: 5px;
+  animation-delay: 1.2s;
+}
+
+@keyframes heart-float {
+  0%   { transform: translateY(0px) scale(1);   opacity: 1; }
+  50%  { transform: translateY(-25px) scale(1.2); opacity: 0.8; }
+  100% { transform: translateY(-50px) scale(0.8); opacity: 0; }
+}
+
+/* === Rayos shocked (surprised) === */
+.shock-lines {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.shock-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.shock-line {
+  animation: shock-flash 0.25s ease-in-out infinite alternate;
+}
+
+.sl-1 { animation-delay: 0s; }
+.sl-2 { animation-delay: 0.08s; }
+.sl-3 { animation-delay: 0.16s; }
+
+@keyframes shock-flash {
+  from { opacity: 0.2; stroke-width: 2; }
+  to   { opacity: 1;   stroke-width: 4; }
+}
+
+/* === Partículas sparkle === */
+.sparkle-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.sparkle {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: sparkle-anim 1.5s ease-out forwards;
+}
+
+.state-talking .sparkle,
+.state-happy .sparkle {
+  background: #ffd54f;
+}
+
+.state-surprised .sparkle {
+  background: #ff9900;
+}
+
+.state-thinking .sparkle {
+  background: #4a90d9;
+}
+
+@keyframes sparkle-anim {
+  0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+  50%  { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+  100% { transform: scale(0) rotate(360deg) translateY(-20px); opacity: 0; }
+}
+
+/* === Aura de energía === */
+.energy-aura {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(224,32,32,0.08) 0%, transparent 70%);
+  top: 10px;
+  left: 10px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.state-happy .energy-aura {
+  background: radial-gradient(circle, rgba(255,220,50,0.15) 0%, transparent 70%);
+}
+
+.energy-aura.active {
+  opacity: 1;
+  animation: aura-pulse 1s ease-in-out infinite;
+}
+
+@keyframes aura-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+
+/* === Keyframes flotación base === */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes float-happy {
+  0%   { transform: translateY(0px) rotate(-3deg); }
+  25%  { transform: translateY(-10px) rotate(3deg); }
+  50%  { transform: translateY(-16px) rotate(-2deg); }
+  75%  { transform: translateY(-8px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(-3deg); }
+}
+
+@keyframes float-shocked {
+  0%, 100% { transform: translateY(0px) scaleX(1.05); }
+  50%       { transform: translateY(-5px) scaleX(0.97); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(255,255,255,0.3)) drop-shadow(0 0 40px rgba(224,32,32,0.15)); }
+  50%       { filter: drop-shadow(0 0 30px rgba(255,255,255,0.5)) drop-shadow(0 0 60px rgba(224,32,32,0.30)); }
+}
+
+@keyframes tail-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(2deg); }
+  75%       { transform: rotate(-2deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

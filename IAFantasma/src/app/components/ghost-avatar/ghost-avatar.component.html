@@ -1,0 +1,270 @@
+<div class="ghost-wrapper" [class]="'state-' + state">
+
+  <!-- Sombra de suelo -->
+  <div class="ghost-shadow"></div>
+
+  <!-- Anillos orbitales (modo thinking) -->
+  <div class="orbit-rings" *ngIf="state === 'thinking'">
+    <svg class="orbit-svg" viewBox="0 0 200 200">
+      <ellipse cx="100" cy="100" rx="90" ry="30" fill="none"
+               stroke="rgba(224,32,32,0.5)" stroke-width="1.5"
+               stroke-dasharray="8 5" class="ring ring-1"/>
+      <ellipse cx="100" cy="100" rx="70" ry="20" fill="none"
+               stroke="rgba(255,255,255,0.3)" stroke-width="1"
+               stroke-dasharray="6 6" class="ring ring-2"/>
+    </svg>
+  </div>
+
+  <!-- Corazones flotantes (modo happy) -->
+  <div class="hearts-container" *ngIf="state === 'happy'">
+    <span class="heart heart-1">💖</span>
+    <span class="heart heart-2">💕</span>
+    <span class="heart heart-3">❤️</span>
+  </div>
+
+  <!-- Rayos de susto (modo surprised) -->
+  <div class="shock-lines" *ngIf="state === 'surprised'">
+    <svg class="shock-svg" viewBox="0 0 200 200">
+      <line x1="100" y1="10" x2="80" y2="50" stroke="#e02020" stroke-width="3" stroke-linecap="round" class="shock-line sl-1"/>
+      <line x1="150" y1="30" x2="120" y2="60" stroke="#e02020" stroke-width="3" stroke-linecap="round" class="shock-line sl-2"/>
+      <line x1="50"  y1="30" x2="75"  y2="60" stroke="#e02020" stroke-width="3" stroke-linecap="round" class="shock-line sl-3"/>
+    </svg>
+  </div>
+
+  <!-- SVG del Fantasma -->
+  <svg class="ghost-svg" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Gradiente cuerpo principal IDLE -->
+      <radialGradient id="bodyGrad" cx="50%" cy="35%" r="60%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="60%"  stop-color="#e8e8e8"/>
+        <stop offset="100%" stop-color="#c0c0c0"/>
+      </radialGradient>
+
+      <!-- Gradiente cuerpo HAPPY (amarillo-blanco cálido) -->
+      <radialGradient id="bodyGradHappy" cx="50%" cy="35%" r="60%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="55%"  stop-color="#fff3c4"/>
+        <stop offset="100%" stop-color="#ffd54f"/>
+      </radialGradient>
+
+      <!-- Gradiente cuerpo THINKING (azul frío) -->
+      <radialGradient id="bodyGradThinking" cx="50%" cy="35%" r="60%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="60%"  stop-color="#d0e8ff"/>
+        <stop offset="100%" stop-color="#7ab8f5"/>
+      </radialGradient>
+
+      <!-- Gradiente cuerpo TALKING -->
+      <radialGradient id="bodyGradTalking" cx="50%" cy="35%" r="60%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="60%"  stop-color="#ffe0e0"/>
+        <stop offset="100%" stop-color="#e07070"/>
+      </radialGradient>
+
+      <!-- Gradiente cuerpo SURPRISED (naranja eléctrico) -->
+      <radialGradient id="bodyGradSurprised" cx="50%" cy="35%" r="60%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="55%"  stop-color="#ffe0a0"/>
+        <stop offset="100%" stop-color="#ff9900"/>
+      </radialGradient>
+
+      <!-- Gradiente glow interior -->
+      <radialGradient id="innerGlow" cx="50%" cy="45%" r="50%">
+        <stop offset="0%"   stop-color="rgba(224,32,32,0.15)"/>
+        <stop offset="100%" stop-color="rgba(224,32,32,0)"/>
+      </radialGradient>
+
+      <!-- Filtro blur para sombra -->
+      <filter id="softBlur">
+        <feGaussianBlur stdDeviation="3"/>
+      </filter>
+
+      <!-- Filtro glow blanco -->
+      <filter id="whiteGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <!-- Filtro glow rojo para ojos -->
+      <filter id="redGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2.5" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <!-- Filtro glow verde/amarillo para happy -->
+      <filter id="happyGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <!-- Filtro glow azul para thinking -->
+      <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2.5" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <!-- Filtro glow naranja para surprised -->
+      <filter id="orangeGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    <!-- Sombra del cuerpo -->
+    <ellipse cx="80" cy="192" rx="38" ry="7"
+             fill="rgba(0,0,0,0.35)" filter="url(#softBlur)"/>
+
+    <!-- Cola del fantasma con animación wiggle -->
+    <g class="ghost-tail">
+      <path d="M 20 140 Q 10 162 24 175 Q 34 188 44 172 Q 52 158 58 172
+               Q 66 186 75 170 Q 82 155 88 170 Q 95 185 105 170
+               Q 114 155 120 172 Q 128 188 138 175 Q 150 162 140 140 Z"
+            [attr.fill]="getBodyGradient()"/>
+    </g>
+
+    <!-- Cuerpo principal -->
+    <path d="M 20 90 Q 18 50 80 20 Q 142 50 140 90 L 140 145 Q 80 165 20 145 Z"
+          [attr.fill]="getBodyGradient()" filter="url(#whiteGlow)"/>
+
+    <!-- Brillo interior por emoción -->
+    <path d="M 20 90 Q 18 50 80 20 Q 142 50 140 90 L 140 145 Q 80 165 20 145 Z"
+          [attr.fill]="getInnerGlowColor()"/>
+
+    <!-- Reflejo/highlight en la parte superior -->
+    <ellipse cx="65" cy="52" rx="18" ry="12"
+             fill="rgba(255,255,255,0.5)" transform="rotate(-25,65,52)"/>
+
+    <!-- ===================== OJOS POR EMOCIÓN ===================== -->
+
+    <!-- IDLE / TALKING: ojos rojos normales redondos -->
+    <g *ngIf="state === 'idle' || state === 'talking'"
+       [style.transform]="'translate(' + eyeOffsetX + 'px,' + eyeOffsetY + 'px)'"
+       filter="url(#redGlow)">
+      <!-- Ojo izquierdo -->
+      <ellipse cx="58" cy="82" rx="13" ry="13"
+               [style.transform]="'scaleY(' + getEyeScale() + ')'"
+               fill="#cc1515"
+               style="transform-origin: 58px 82px; transition: transform 0.08s ease"/>
+      <ellipse cx="54" cy="79" rx="5" ry="5" fill="#000000" opacity="0.7"/>
+      <ellipse cx="61" cy="77" rx="2.5" ry="2.5" fill="rgba(255,255,255,0.9)"/>
+      <!-- Ojo derecho -->
+      <ellipse cx="102" cy="82" rx="13" ry="13"
+               [style.transform]="'scaleY(' + getEyeScale() + ')'"
+               fill="#cc1515"
+               style="transform-origin: 102px 82px; transition: transform 0.08s ease"/>
+      <ellipse cx="98" cy="79" rx="5" ry="5" fill="#000000" opacity="0.7"/>
+      <ellipse cx="105" cy="77" rx="2.5" ry="2.5" fill="rgba(255,255,255,0.9)"/>
+    </g>
+
+    <!-- HAPPY: ojos cerrados (arcos curvados hacia arriba = sonrisa en ojos) con brillo dorado -->
+    <g *ngIf="state === 'happy'"
+       [style.transform]="'translate(' + eyeOffsetX + 'px,' + eyeOffsetY + 'px)'"
+       filter="url(#happyGlow)">
+      <!-- Ojo izquierdo cerrado feliz -->
+      <path d="M 45 85 Q 58 70 71 85"
+            fill="none" stroke="#e6a800" stroke-width="5" stroke-linecap="round"
+            class="eye-happy-arc"/>
+      <!-- Ojo derecho cerrado feliz -->
+      <path d="M 89 85 Q 102 70 115 85"
+            fill="none" stroke="#e6a800" stroke-width="5" stroke-linecap="round"
+            class="eye-happy-arc"/>
+      <!-- Destellos dorados encima de los ojos -->
+      <text x="42" y="72" font-size="11" fill="#ffd54f" opacity="0.95" class="star-twinkle">★</text>
+      <text x="111" y="72" font-size="11" fill="#ffd54f" opacity="0.95" class="star-twinkle">★</text>
+    </g>
+
+    <!-- THINKING: ojos asimétricos (uno normal, otro con ceja levantada = fruncido) -->
+    <g *ngIf="state === 'thinking'"
+       [style.transform]="'translate(' + eyeOffsetX + 'px,' + eyeOffsetY + 'px)'"
+       filter="url(#blueGlow)">
+      <!-- Ojo izquierdo normal azul -->
+      <ellipse cx="58" cy="83" rx="12" ry="10" fill="#4a90d9"/>
+      <ellipse cx="55" cy="80" rx="4.5" ry="4.5" fill="#001a33" opacity="0.85"/>
+      <ellipse cx="61" cy="79" rx="2" ry="2" fill="rgba(255,255,255,0.9)"/>
+      <!-- Ojo derecho entrecerrado (fruncido) -->
+      <ellipse cx="102" cy="83" rx="12" ry="6" fill="#4a90d9"/>
+      <ellipse cx="99" cy="82" rx="4" ry="4" fill="#001a33" opacity="0.85"/>
+      <ellipse cx="105" cy="80" rx="2" ry="2" fill="rgba(255,255,255,0.9)"/>
+      <!-- Ceja derecha fruncida -->
+      <path d="M 90 72 Q 100 67 114 70"
+            fill="none" stroke="#4a90d9" stroke-width="3.5" stroke-linecap="round"/>
+      <!-- Signo ? flotante -->
+      <text x="122" y="48" font-size="22" font-family="Outfit" font-weight="700"
+            fill="#4a90d9" opacity="0.9" class="think-float">?</text>
+    </g>
+
+    <!-- SURPRISED: ojos muy abiertos (grandes), iris naranja, pupilas dilatadas -->
+    <g *ngIf="state === 'surprised'"
+       [style.transform]="'translate(' + eyeOffsetX + 'px,' + eyeOffsetY + 'px)'"
+       filter="url(#orangeGlow)">
+      <!-- Ojo izquierdo sorprendido (grande) -->
+      <ellipse cx="58" cy="80" rx="16" ry="18" fill="#ff9900"/>
+      <ellipse cx="58" cy="80" rx="16" ry="18" fill="none"
+               stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+      <ellipse cx="56" cy="78" rx="7" ry="7" fill="#110000" opacity="0.9"/>
+      <ellipse cx="63" cy="75" rx="3" ry="3" fill="rgba(255,255,255,0.95)"/>
+      <!-- Ojo derecho sorprendido -->
+      <ellipse cx="102" cy="80" rx="16" ry="18" fill="#ff9900"/>
+      <ellipse cx="102" cy="80" rx="16" ry="18" fill="none"
+               stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+      <ellipse cx="100" cy="78" rx="7" ry="7" fill="#110000" opacity="0.9"/>
+      <ellipse cx="107" cy="75" rx="3" ry="3" fill="rgba(255,255,255,0.95)"/>
+      <!-- Cejas levantadas en shock -->
+      <path d="M 42 58 Q 58 50 72 57"
+            fill="none" stroke="#ff9900" stroke-width="4" stroke-linecap="round"
+            class="brow-shocked"/>
+      <path d="M 88 57 Q 102 50 118 58"
+            fill="none" stroke="#ff9900" stroke-width="4" stroke-linecap="round"
+            class="brow-shocked"/>
+    </g>
+
+    <!-- Boca animada -->
+    <path class="ghost-mouth"
+          [attr.d]="mouthPath"
+          fill="none"
+          [attr.stroke]="getMouthColor()"
+          stroke-width="3.5"
+          stroke-linecap="round"
+          style="transition: d 0.25s ease, stroke 0.4s ease"/>
+
+    <!-- Lengua (modo happy) -->
+    <g *ngIf="state === 'happy'" class="tongue-group">
+      <ellipse cx="80" cy="122" rx="10" ry="6" fill="#ff6b9d" class="tongue-wag"/>
+      <ellipse cx="75" cy="122" rx="4.5" ry="4" fill="#ff4d8a"/>
+      <ellipse cx="85" cy="122" rx="4.5" ry="4" fill="#ff4d8a"/>
+    </g>
+  </svg>
+
+  <!-- Partículas de destello alrededor -->
+  <div class="sparkle-container">
+    <div *ngFor="let s of sparkles; trackBy: trackById"
+         class="sparkle"
+         [style.left.px]="s.x"
+         [style.top.px]="s.y"
+         [style.width.px]="s.size"
+         [style.height.px]="s.size"
+         [style.animation-delay.s]="s.delay">
+    </div>
+  </div>
+
+  <!-- Aura de energía -->
+  <div class="energy-aura" [class.active]="state === 'talking' || state === 'happy'"></div>
+
+</div>
